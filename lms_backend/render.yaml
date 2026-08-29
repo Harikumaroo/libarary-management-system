@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: lms-backend-api
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn lms_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 4"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: DATABASE_URL
+        sync: false

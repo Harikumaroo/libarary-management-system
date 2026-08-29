@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lms_postgres_db
+    environment:
+      POSTGRES_DB: lms_production_db
+      POSTGRES_USER: lms_user
+      POSTGRES_PASSWORD: lms_password_secure
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./lms_backend
+      dockerfile: Dockerfile
+    container_name: lms_backend_app
+    command: gunicorn --bind 0.0.0.0:8000 --workers 4 lms_backend.wsgi:application
+    volumes:
+      - ./lms_backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=production_secret_key_lms_2026
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://lms_user:lms_password_secure@db:5432/lms_production_db
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

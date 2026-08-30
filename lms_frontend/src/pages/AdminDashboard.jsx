@@ -256,7 +256,7 @@ const AdminDashboard = () => {
 
               <select
                 className="form-select"
-                style={{ width: '180px' }}
+                style={{ flex: '1 1 160px', minWidth: '140px' }}
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
               >

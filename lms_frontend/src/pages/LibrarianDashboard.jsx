@@ -272,7 +272,7 @@ const LibrarianDashboard = () => {
 
               <select
                 className="form-select"
-                style={{ width: '200px' }}
+                style={{ flex: '1 1 160px', minWidth: '140px' }}
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >

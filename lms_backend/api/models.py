@@ -91,10 +91,20 @@ class Reservation(models.Model):
         return f"Reservation: {self.book.title} for {self.user.username} [{self.status}]"
 
 class SystemSettings(models.Model):
+    CURRENCY_CHOICES = (
+        ('INR', 'Rupees (₹)'),
+        ('USD', 'Dollars ($)'),
+    )
     fine_rate_per_day = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
     default_loan_period_days = models.IntegerField(default=14)
     max_books_per_student = models.IntegerField(default=3)
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='INR')
+
+    @property
+    def currency_symbol(self):
+        return '₹' if self.currency == 'INR' else '$'
 
     def __str__(self):
-        return f"System Config (Fine: ${self.fine_rate_per_day}/day, Loan: {self.default_loan_period_days} days)"
+        return f"System Config (Fine: {self.currency_symbol}{self.fine_rate_per_day}/day, Loan: {self.default_loan_period_days} days)"
+
 

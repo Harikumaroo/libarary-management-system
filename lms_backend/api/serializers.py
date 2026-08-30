@@ -121,7 +121,10 @@ class ReservationSerializer(serializers.ModelSerializer):
         ]
 
 class SystemSettingsSerializer(serializers.ModelSerializer):
+    currency_symbol = serializers.ReadOnlyField()
+
     class Meta:
         model = SystemSettings
-        fields = '__all__'
+        fields = ['id', 'fine_rate_per_day', 'default_loan_period_days', 'max_books_per_student', 'currency', 'currency_symbol']
+
 

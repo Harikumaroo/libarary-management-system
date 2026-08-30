@@ -52,15 +52,18 @@ const ReportsDashboard = () => {
           </div>
         </div>
 
-        {reportsData && (
-          <div className="grid-stats">
-            <StatCard title="Total Books Count" value={reportsData.total_books} icon={BookOpen} color="#6366f1" />
-            <StatCard title="Active Loans" value={reportsData.active_loans} icon={BookOpen} color="#3b82f6" />
-            <StatCard title="Overdue Books" value={reportsData.overdue_loans} icon={BookOpen} color="#ef4444" />
-            <StatCard title="Fines Collected" value={`$${reportsData.total_fines_collected}`} icon={DollarSign} color="#10b981" />
-            <StatCard title="Pending Fines" value={`$${reportsData.total_fines_pending}`} icon={DollarSign} color="#f59e0b" />
-          </div>
-        )}
+        {reportsData && (() => {
+          const currencySymbol = reportsData.currency_symbol || (reportsData.currency === 'USD' ? '$' : '₹');
+          return (
+            <div className="grid-stats">
+              <StatCard title="Total Books Count" value={reportsData.total_books} icon={BookOpen} color="#6366f1" />
+              <StatCard title="Active Loans" value={reportsData.active_loans} icon={BookOpen} color="#3b82f6" />
+              <StatCard title="Overdue Books" value={reportsData.overdue_loans} icon={BookOpen} color="#ef4444" />
+              <StatCard title="Fines Collected" value={`${currencySymbol}${reportsData.total_fines_collected}`} icon={DollarSign} color="#10b981" />
+              <StatCard title="Pending Fines" value={`${currencySymbol}${reportsData.total_fines_pending}`} icon={DollarSign} color="#f59e0b" />
+            </div>
+          );
+        })()}
 
         {/* Transactions Table */}
         <div className="glass-card" style={{ padding: '24px', marginTop: '24px' }}>
@@ -98,7 +101,7 @@ const ReportsDashboard = () => {
                           {t.status}
                         </span>
                       </td>
-                      <td>${t.calculated_fine}</td>
+                      <td>{(reportsData?.currency_symbol || '₹')}{t.calculated_fine}</td>
                     </tr>
                   ))
                 )}

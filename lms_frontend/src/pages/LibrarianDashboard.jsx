@@ -50,6 +50,10 @@ const LibrarianDashboard = () => {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryForm, setCategoryForm] = useState({ name: '', description: '' });
 
+  // System Settings State for Currency
+  const [sysSettings, setSysSettings] = useState(null);
+  const currencySymbol = sysSettings?.currency_symbol || (sysSettings?.currency === 'USD' ? '$' : '₹');
+
   const navTabs = [
     { id: 'inventory', label: 'Book Inventory', icon: BookOpen },
     { id: 'circulation', label: 'Issue / Return', icon: ArrowUpRight },
@@ -64,13 +68,14 @@ const LibrarianDashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [bRes, cRes, sRes, tRes, oRes, rRes] = await Promise.all([
+      const [bRes, cRes, sRes, tRes, oRes, rRes, stRes] = await Promise.all([
         apiClient.get(`/books/${categoryFilter ? `?category=${categoryFilter}` : ''}`),
         apiClient.get('/categories/'),
         apiClient.get('/users/?role=student'),
         apiClient.get('/transactions/'),
         apiClient.get('/transactions/overdue/'),
-        apiClient.get('/reservations/')
+        apiClient.get('/reservations/'),
+        apiClient.get('/settings/')
       ]);
 
       setBooks(bRes.data);
@@ -79,6 +84,7 @@ const LibrarianDashboard = () => {
       setTransactions(tRes.data);
       setOverdueList(oRes.data);
       setReservations(rRes.data);
+      if (stRes.data) setSysSettings(stRes.data);
     } catch (err) {
       setToast({ type: 'error', message: 'Failed to fetch librarian dashboard data' });
     } finally {
@@ -151,7 +157,7 @@ const LibrarianDashboard = () => {
       const res = await apiClient.post('/transactions/return_book/', { transaction_id: transactionId });
       const fine = res.data.fine_amount;
       if (fine > 0) {
-        setToast({ type: 'warning', message: `Book returned! Overdue fine of $${fine} generated.` });
+        setToast({ type: 'warning', message: `Book returned! Overdue fine of ${currencySymbol}${fine} generated.` });
       } else {
         setToast({ type: 'success', message: 'Book returned in good time with no fines!' });
       }
@@ -404,7 +410,7 @@ const LibrarianDashboard = () => {
                           </td>
                           <td>
                             <span className={`badge ${t.calculated_fine > 0 ? 'badge-danger' : 'badge-success'}`}>
-                              ${t.calculated_fine}
+                              {currencySymbol}{t.calculated_fine}
                             </span>
                           </td>
                           <td>
@@ -472,7 +478,7 @@ const LibrarianDashboard = () => {
                             <span className="badge badge-danger">{t.overdue_days} Days</span>
                           </td>
                           <td style={{ fontSize: '1rem', fontWeight: 800, color: '#ef4444' }}>
-                            ${t.calculated_fine}
+                            {currencySymbol}{t.calculated_fine}
                           </td>
                           <td>
                             <span className={`badge ${t.fine_paid ? 'badge-success' : 'badge-danger'}`}>

@@ -279,7 +279,13 @@ class ReservationViewSet(viewsets.ModelViewSet):
 class SystemSettingsViewSet(viewsets.ModelViewSet):
     queryset = SystemSettings.objects.all()
     serializer_class = SystemSettingsSerializer
-    permission_classes = [IsAdminUser]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
 
     def list(self, request, *args, **kwargs):
         settings_obj, created = SystemSettings.objects.get_or_create(id=1)
@@ -306,6 +312,8 @@ class ReportsView(APIView):
 
         settings_obj = SystemSettings.objects.first()
         rate = settings_obj.fine_rate_per_day if settings_obj else 5.00
+        currency = settings_obj.currency if settings_obj else 'INR'
+        currency_symbol = settings_obj.currency_symbol if settings_obj else '₹'
 
         paid_fines = Transaction.objects.filter(fine_paid=True).aggregate(total=Sum('fine_amount'))['total'] or 0.00
         
@@ -330,6 +338,9 @@ class ReportsView(APIView):
             'total_returned': total_returned,
             'total_fines_collected': round(float(paid_fines), 2),
             'total_fines_pending': round(pending_fines, 2),
+            'currency': currency,
+            'currency_symbol': currency_symbol,
             'category_distribution': list(category_data)
         })
+
 

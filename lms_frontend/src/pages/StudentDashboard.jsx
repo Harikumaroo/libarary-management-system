@@ -29,6 +29,10 @@ const StudentDashboard = () => {
   const [lookupResult, setLookupResult] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
 
+  // System Settings for Currency
+  const [sysSettings, setSysSettings] = useState(null);
+  const currencySymbol = sysSettings?.currency_symbol || (sysSettings?.currency === 'USD' ? '$' : '₹');
+
   const navTabs = [
     { id: 'catalog', label: 'Book Catalog', icon: BookOpen },
     { id: 'mybooks', label: 'My Borrowed Books', icon: Clock },
@@ -44,12 +48,13 @@ const StudentDashboard = () => {
   const fetchStudentData = async () => {
     setLoading(true);
     try {
-      const [bRes, cRes, tRes, rRes, pRes] = await Promise.all([
+      const [bRes, cRes, tRes, rRes, pRes, sRes] = await Promise.all([
         apiClient.get(`/books/?category=${categoryFilter}&available=${availableOnly}`),
         apiClient.get('/categories/'),
         apiClient.get('/transactions/'),
         apiClient.get('/reservations/'),
-        apiClient.get('/users/me/')
+        apiClient.get('/users/me/'),
+        apiClient.get('/settings/')
       ]);
 
       setBooks(bRes.data);
@@ -57,6 +62,7 @@ const StudentDashboard = () => {
       setMyTransactions(tRes.data);
       setMyReservations(rRes.data);
       setUserProfile(pRes.data);
+      if (sRes.data) setSysSettings(sRes.data);
       
       if (pRes.data && pRes.data.register_number) {
         setLookupRegNumber(pRes.data.register_number);
@@ -122,7 +128,7 @@ const StudentDashboard = () => {
             {userProfile && (
               <div className="grid-stats">
                 <StatCard title="Active Borrowed Books" value={`${userProfile.active_loans_count} / ${userProfile.max_books_allowed}`} icon={BookOpen} color="#6366f1" />
-                <StatCard title="Pending Fines Due" value={`$${userProfile.total_fines_due}`} icon={DollarSign} color={userProfile.total_fines_due > 0 ? '#ef4444' : '#10b981'} />
+                <StatCard title="Pending Fines Due" value={`${currencySymbol}${userProfile.total_fines_due}`} icon={DollarSign} color={userProfile.total_fines_due > 0 ? '#ef4444' : '#10b981'} />
                 <StatCard title="Active Reservations" value={myReservations.filter(r => r.status === 'pending').length} icon={Bookmark} color="#8b5cf6" />
               </div>
             )}
@@ -270,7 +276,7 @@ const StudentDashboard = () => {
                             </td>
                             <td>
                               <span className={`badge ${t.calculated_fine > 0 ? 'badge-danger' : 'badge-success'}`}>
-                                ${t.calculated_fine}
+                                {currencySymbol}{t.calculated_fine}
                               </span>
                             </td>
                           </tr>
@@ -308,7 +314,7 @@ const StudentDashboard = () => {
                             <td>{t.issue_date}</td>
                             <td>{t.return_date}</td>
                             <td>
-                              <span className="badge badge-success">Returned (Fine: ${t.fine_amount})</span>
+                              <span className="badge badge-success">Returned (Fine: {currencySymbol}{t.fine_amount})</span>
                             </td>
                           </tr>
                         ))
@@ -396,7 +402,7 @@ const StudentDashboard = () => {
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Total Fines Due</div>
                         <span className={`badge ${lookupResult.student.total_fines_due > 0 ? 'badge-danger' : 'badge-success'}`}>
-                          ${lookupResult.student.total_fines_due}
+                          {currencySymbol}{lookupResult.student.total_fines_due}
                         </span>
                       </div>
                     </div>
@@ -444,7 +450,7 @@ const StudentDashboard = () => {
                               </td>
                               <td>
                                 <span className={`badge ${t.calculated_fine > 0 ? 'badge-danger' : 'badge-success'}`}>
-                                  ${t.calculated_fine}
+                                  {currencySymbol}{t.calculated_fine}
                                 </span>
                               </td>
                             </tr>
@@ -485,7 +491,7 @@ const StudentDashboard = () => {
                               <td style={{ fontWeight: 600 }}>{t.book_title}</td>
                               <td>{t.issue_date}</td>
                               <td>{t.return_date}</td>
-                              <td>${t.fine_amount}</td>
+                              <td>{currencySymbol}{t.fine_amount}</td>
                               <td>
                                 <span className={`badge ${t.fine_paid ? 'badge-success' : 'badge-danger'}`}>
                                   {t.fine_paid ? 'Paid' : 'Unpaid'}
@@ -597,7 +603,7 @@ const StudentDashboard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#94a3b8' }}>Total Outstanding Fine:</span>
                   <span className={`badge ${userProfile.total_fines_due > 0 ? 'badge-danger' : 'badge-success'}`}>
-                    ${userProfile.total_fines_due}
+                    {currencySymbol}{userProfile.total_fines_due}
                   </span>
                 </div>
               </div>

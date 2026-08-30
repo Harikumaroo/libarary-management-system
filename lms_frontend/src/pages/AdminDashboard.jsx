@@ -24,7 +24,9 @@ const AdminDashboard = () => {
   const [sysSettings, setSysSettings] = useState({
     fine_rate_per_day: '5.00',
     default_loan_period_days: 14,
-    max_books_per_student: 3
+    max_books_per_student: 3,
+    currency: 'INR',
+    currency_symbol: '₹'
   });
 
   // User Modal State
@@ -151,6 +153,8 @@ const AdminDashboard = () => {
     (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const currencySymbol = sysSettings.currency_symbol || (sysSettings.currency === 'USD' ? '$' : '₹');
+
   return (
     <div>
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} tabs={navTabs} />
@@ -176,8 +180,8 @@ const AdminDashboard = () => {
                 <StatCard title="Registered Students" value={stats.total_students} icon={Users} color="#10b981" />
                 <StatCard title="Librarians Staff" value={stats.total_librarians} icon={Shield} color="#8b5cf6" />
                 <StatCard title="Active Book Loans" value={stats.active_loans} icon={BookOpen} color="#3b82f6" trend={`${stats.overdue_loans} overdue`} />
-                <StatCard title="Collected Fines" value={`$${stats.total_fines_collected}`} icon={DollarSign} color="#10b981" />
-                <StatCard title="Pending Fines" value={`$${stats.total_fines_pending}`} icon={DollarSign} color="#ef4444" />
+                <StatCard title="Collected Fines" value={`${stats.currency_symbol || currencySymbol}${stats.total_fines_collected}`} icon={DollarSign} color="#10b981" />
+                <StatCard title="Pending Fines" value={`${stats.currency_symbol || currencySymbol}${stats.total_fines_pending}`} icon={DollarSign} color="#ef4444" />
               </div>
             )}
 
@@ -303,7 +307,7 @@ const AdminDashboard = () => {
                         </td>
                         <td>
                           <span className={`badge ${u.total_fines_due > 0 ? 'badge-danger' : 'badge-success'}`}>
-                            ${u.total_fines_due}
+                            {currencySymbol}{u.total_fines_due}
                           </span>
                         </td>
                         <td>
@@ -331,14 +335,31 @@ const AdminDashboard = () => {
             <div className="page-header">
               <div>
                 <h1 className="page-title">System Settings & Rules</h1>
-                <p className="page-subtitle">Configure automated fine calculation rules and loan limits</p>
+                <p className="page-subtitle">Configure automated fine calculation rules and currency</p>
               </div>
             </div>
 
             <div className="glass-card" style={{ padding: '32px', maxWidth: '600px' }}>
               <form onSubmit={handleSaveSettings}>
                 <div className="form-group">
-                  <label className="form-label">Overdue Fine Rate ($ per day)</label>
+                  <label className="form-label">System Currency Choice</label>
+                  <select
+                    className="form-select"
+                    value={sysSettings.currency || 'INR'}
+                    onChange={(e) => {
+                      const cur = e.target.value;
+                      const sym = cur === 'USD' ? '$' : '₹';
+                      setSysSettings({ ...sysSettings, currency: cur, currency_symbol: sym });
+                    }}
+                  >
+                    <option value="INR">Rupees (₹ - INR)</option>
+                    <option value="USD">Dollars ($ - USD)</option>
+                  </select>
+                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Select currency used for fine calculations and displays across all dashboards</span>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Overdue Fine Rate ({currencySymbol} per day)</label>
                   <input
                     type="number"
                     step="0.50"
